@@ -11,9 +11,16 @@ public class DragDrop : MonoBehaviour {
     public float fraction;
     public Vector3 friction;
     public Vector3 screenPos;
+
+    public float flipSpeed;
+    Animator anim;
+    public AnimationClip clip;
+    public bool flip=false;
 	// Use this for initialization
 	void Start () {
         velocity = Vector3.zero;
+        anim = GetComponent<Animator>();
+        anim.SetBool("flip", false);
 	}
 
     // Update is called once per frame
@@ -74,9 +81,23 @@ public class DragDrop : MonoBehaviour {
     {
         screenPos = Camera.main.WorldToScreenPoint(this.transform.position);
         if (screenPos.x < 0 || screenPos.y < 0 || screenPos.x > Screen.width || screenPos.y > Screen.height)
-        {
+        { 
             velocity = Vector3.zero;
             this.transform.position = prePos;
+            if(!flip)
+                FlipBegin();
+            flip = true;
         }
+
+    }
+    void FlipBegin()
+    {
+        anim.SetBool("flip", true);
+    }
+    void FlipOver()
+    {
+        flip = false;
+        anim.SetBool("flip", false);
+        anim.StopPlayback();
     }
 }

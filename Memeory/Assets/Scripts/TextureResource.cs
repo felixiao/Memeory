@@ -13,6 +13,7 @@ public class TextureResource : MonoBehaviour {
         diamond = Resources.LoadAll<Texture>("diamond");
         spade = Resources.LoadAll<Texture>("spade");
         heart = Resources.LoadAll<Texture>("heart");
+        Debug.Log("Finish Loading");
 	}
 	
 	// Update is called once per frame
@@ -21,6 +22,7 @@ public class TextureResource : MonoBehaviour {
 	}
     public Texture GetTexture(SetCard.CardShape shape, int num)
     {
+        Debug.Log(shape.ToString() + ", " + num);
         switch (shape)
         {
             case SetCard.CardShape.Club:
