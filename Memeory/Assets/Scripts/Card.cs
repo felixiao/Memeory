@@ -2,7 +2,7 @@
 using System.Collections;
 
 public class Card : MonoBehaviour {
-    CardInfo cardInfo;
+    public CardInfo cardInfo;
     Material frontMat;
     ResourceMgr resMgr;
 	// Use this for initialization
