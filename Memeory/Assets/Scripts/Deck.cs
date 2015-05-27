@@ -48,6 +48,7 @@ public class Deck
     }
     public CardInfo GetCard(int index)
     {
+        Debug.Log("Index :" + index + " Card Index: " + cardIndex[index]);
         if (index < 52 && index >= 0)
             return cards[cardIndex[index]];
         else

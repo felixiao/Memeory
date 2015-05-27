@@ -2,14 +2,18 @@
 using System.Collections;
 
 public class CardMgr : MonoBehaviour {
+
     Deck deck;
     int curIndex=0;
     public GameObject cardPrefab;
     GameObject newCard;
+    public int deckLength;
+    public Canvas canvas_ui;
 	// Use this for initialization
 	void Start () {
         deck = new Deck();
         InitDeck();
+        DrawACard();
 	}
 	
 	// Update is called once per frame
@@ -19,7 +23,7 @@ public class CardMgr : MonoBehaviour {
     public void InitDeck()
     {
         deck.Init();
-        deck.Sort();
+        //Deck.Instance.Sort();
         deck.Shuffle();
     }
     public void ResetDeck()
@@ -31,37 +35,61 @@ public class CardMgr : MonoBehaviour {
     /// </summary>
     public void DrawACard()
     {
-        curIndex++;
-        CreateNewCard();
-        if (curIndex == 51)
+        if (curIndex <deckLength)
         {
-            OnDrawLastCard();
+            CreateNewCard();
+            curIndex++;
+            if (curIndex == deckLength)
+            {
+                OnDrawLastCard();
+            }
         }
     }
-    public void CreateNewCard()
+    private void CreateNewCard()
     {
         newCard = GameObject.Instantiate(cardPrefab);
-        Card card = newCard.GetComponent<Card>();
-        card.cardInfo = deck.GetCard(curIndex);
-        newCard.name = "[" + curIndex + "] " + card.cardInfo.ToString();
         newCard.transform.parent = this.transform;
+        CardBehaviour cardBh = newCard.GetComponent<CardBehaviour>();
+        cardBh.cardManager = this.gameObject;
+        Card card = newCard.GetComponent<Card>();
+        CardInfo ci = deck.GetCard(curIndex);
+        card.SetCardContent(curIndex, ci);
     }
     /// <summary>
     /// Call once when draw the last card but before put into any assembly
     /// </summary>
-    public void OnDrawLastCard()
+    private void OnDrawLastCard()
     {
         //do not show next card
+
+    }
+
+    public void OnCardClassified()
+    {
+        if (curIndex < deckLength)
+        {
+            DrawACard();
+            if (curIndex == deckLength)
+            {
+                OnSortFinish();
+            }
+        }
     }
     /// <summary>
     /// Call once when the last card put to an assembly
     /// </summary>
-    public void OnSortFinish()
+    private void OnSortFinish()
     {
         //Show Result panel
+        UI_PanelResult ui_pr = canvas_ui.GetComponent<UI_PanelResult>();
+        ui_pr.ShowResult(14, 29);
     }
-    public void OnCardClassified()
+    public void Btn_PlayAgain_Click()
     {
-        DrawACard();
+        for (int i = this.transform.childCount-1; i > 0; i--)
+        {
+            Destroy(this.transform.GetChild(0).gameObject);
+        }
+        ResetDeck();
     }
 }

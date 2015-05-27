@@ -16,10 +16,15 @@ public class CardBehaviour : MonoBehaviour {
     Animator anim;
     public AnimationClip clip;
     public bool flip = false;
+    public bool dragable = true;
+
+    public GameObject cardManager;
+    CardMgr cardMgr;
     // Use this for initialization
     void Start()
     {
         velocity = Vector3.zero;
+        cardMgr = cardManager.GetComponent<CardMgr>();
         //anim = GetComponent<Animator>();
         //anim.SetBool("flip", false);
     }
@@ -27,54 +32,54 @@ public class CardBehaviour : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetMouseButton(0) || Input.touchCount > 0)
+        if (dragable)
         {
-            if (Application.platform == RuntimePlatform.WindowsEditor)
+            if (Input.GetMouseButton(0) || Input.touchCount > 0)
             {
-                mousePos = Input.mousePosition;
-            }
-            else if (Application.platform == RuntimePlatform.Android)
-            {
-                mousePos = Input.touches[0].position;
-            }
-            RaycastHit rayHit;
-            if (Physics.Raycast(Camera.main.ScreenPointToRay(mousePos), out rayHit, 100))
-            {
-                if (rayHit.transform == this.transform)
+                if (Application.platform == RuntimePlatform.WindowsEditor)
                 {
-                    rayName = rayHit.transform.name;
-                    if (b_touchEnds)
+                    mousePos = Input.mousePosition;
+                }
+                else if (Application.platform == RuntimePlatform.Android)
+                {
+                    mousePos = Input.touches[0].position;
+                }
+                RaycastHit rayHit;
+                if (Physics.Raycast(Camera.main.ScreenPointToRay(mousePos), out rayHit, 100))
+                {
+                    if (rayHit.transform == this.transform)
                     {
-                        deltaPosX = this.transform.position.x - rayHit.point.x;
-                        deltaPosY = this.transform.position.y - rayHit.point.y;
-                        b_touchEnds = false;
+                        rayName = rayHit.transform.name;
+                        if (b_touchEnds)
+                        {
+                            deltaPosX = this.transform.position.x - rayHit.point.x;
+                            deltaPosY = this.transform.position.y - rayHit.point.y;
+                            b_touchEnds = false;
+                        }
+                        prePos = this.transform.position;
+                        this.transform.position = new Vector3(rayHit.point.x + deltaPosX, rayHit.point.y + deltaPosY, 50);
                     }
-                    prePos = this.transform.position;
-                    this.transform.position = new Vector3(rayHit.point.x + deltaPosX, rayHit.point.y + deltaPosY, 50);
                 }
             }
-        }
-        else if (Input.GetMouseButtonUp(0) || Input.touchCount > 0 && Input.touches[0].phase == TouchPhase.Ended)
-        {
-            b_touchEnds = true;
-            velocity = new Vector3(this.transform.position.x - prePos.x, this.transform.position.y - prePos.y, 0);
-            friction = velocity * fraction;
+            else if (Input.GetMouseButtonUp(0) || Input.touchCount > 0 && Input.touches[0].phase == TouchPhase.Ended)
+            {
+                b_touchEnds = true;
+                velocity = new Vector3(this.transform.position.x - prePos.x, this.transform.position.y - prePos.y, 0);
+                friction = velocity * fraction;
 
+            }
+        }
+
+        if (velocity.magnitude > 0.01)
+        {
+            prePos = this.transform.position;
+            this.transform.position += velocity;
+            velocity -= friction;
         }
         else
         {
-            if (velocity.magnitude > 0.01)
-            {
-                prePos = this.transform.position;
-                this.transform.position += velocity;
-                velocity -= friction;
-            }
-            else
-            {
-                velocity = Vector3.zero;
-            }
+            velocity = Vector3.zero;
         }
-
 
         CheckScreenBoarder();
     }
@@ -84,13 +89,19 @@ public class CardBehaviour : MonoBehaviour {
         screenPos = Camera.main.WorldToScreenPoint(this.transform.position);
         if (screenPos.x < 0 || screenPos.y < 0 || screenPos.x > Screen.width || screenPos.y > Screen.height)
         {
-            velocity = Vector3.zero;
-            this.transform.position = prePos;
-            if (!flip)
-                FlipBegin();
-            flip = true;
+            OnEdge();
         }
 
+    }
+    void OnEdge()
+    {
+        velocity = Vector3.zero;
+        this.transform.position = prePos;
+        if (!flip)
+            FlipBegin();
+        flip = true;
+        dragable = false;
+        cardMgr.OnCardClassified();
     }
     void FlipBegin()
     {
